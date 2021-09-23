@@ -1,0 +1,6 @@
+dependencies:
+- ../go-base
+build:
+  name: thavlik/gcommz-relay
+  context: ../../
+
