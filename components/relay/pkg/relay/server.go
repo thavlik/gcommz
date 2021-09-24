@@ -17,18 +17,18 @@ import (
 	"go.uber.org/zap"
 )
 
-type userConn struct {
+type userInfo struct {
 	id    string
 	l     sync.Mutex
 	conns []*websocket.Conn
 }
 
 type Server struct {
-	socketsL sync.Mutex
-	sockets  map[string]*userConn
-	redis    *redis.Client
-	storage  storage.Storage
-	log      *zap.Logger
+	usersL  sync.Mutex
+	users   map[string]*userInfo
+	redis   *redis.Client
+	storage storage.Storage
+	log     *zap.Logger
 }
 
 func NewServer(
@@ -36,18 +36,18 @@ func NewServer(
 	log *zap.Logger,
 ) *Server {
 	return &Server{
-		sockets: make(map[string]*userConn),
-		redis:   redis,
-		log:     log,
+		users: make(map[string]*userInfo),
+		redis: redis,
+		log:   log,
 	}
 }
 
 var errUserNotFound = fmt.Errorf("user not found")
 
-func (s *Server) getUser(userID string) (*userConn, error) {
-	s.socketsL.Lock()
-	u, ok := s.sockets[userID]
-	s.socketsL.Unlock()
+func (s *Server) getUser(userID string) (*userInfo, error) {
+	s.usersL.Lock()
+	u, ok := s.users[userID]
+	s.usersL.Unlock()
 	if !ok {
 		return nil, errUserNotFound
 	}
@@ -174,30 +174,30 @@ func (s *Server) handler() http.HandlerFunc {
 	}
 }
 
-func (s *Server) addConn(userID string, c *websocket.Conn) *userConn {
+func (s *Server) addConn(userID string, c *websocket.Conn) *userInfo {
 	defer numWebSocketConnections.Inc()
-	s.socketsL.Lock()
-	user, ok := s.sockets[userID]
+	s.usersL.Lock()
+	user, ok := s.users[userID]
 	if ok {
-		s.socketsL.Unlock() // Unlock immediately
+		s.usersL.Unlock() // Unlock immediately
 		user.l.Lock()
 		user.conns = append(user.conns, c)
 		user.l.Unlock()
 		return user
 	} else {
 		// Create a new user
-		user := &userConn{
+		user := &userInfo{
 			id:    userID,
 			conns: []*websocket.Conn{c},
 		}
-		s.sockets[userID] = user
-		s.socketsL.Unlock()
+		s.users[userID] = user
+		s.usersL.Unlock()
 		numUsers.Inc()
 		return user
 	}
 }
 
-func (s *Server) removeConn(user *userConn, c *websocket.Conn) {
+func (s *Server) removeConn(user *userInfo, c *websocket.Conn) {
 	defer numWebSocketConnections.Dec()
 	user.l.Lock()
 	defer user.l.Unlock()
@@ -215,9 +215,9 @@ func (s *Server) removeConn(user *userConn, c *websocket.Conn) {
 		panic(fmt.Sprintf("specific connection not found for user '%s'", user.id))
 	}
 	if len(conns) == 0 {
-		s.socketsL.Lock()
-		delete(s.sockets, user.id)
-		s.socketsL.Unlock()
+		s.usersL.Lock()
+		delete(s.users, user.id)
+		s.usersL.Unlock()
 		numUsers.Dec()
 	} else {
 		user.conns = conns
