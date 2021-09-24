@@ -341,8 +341,8 @@ func (s *relayServer) handleUnblock(w http.ResponseWriter, r *http.Request) {
 }
 
 type BanRequest struct {
-	UserID string `json:"userID"`
-	ChatID string `json:"chatID"`
+	UserID    string `json:"userID"`
+	ChannelID string `json:"channelID"`
 }
 
 type BanResponse struct {
@@ -350,7 +350,8 @@ type BanResponse struct {
 }
 
 type BlockRequest struct {
-	UserID string `json:"userID"`
+	UserID        string `json:"userID"`
+	UserToBlockId string `json:"userToBlockId"`
 }
 
 type BlockResponse struct {
@@ -383,11 +384,12 @@ type DeleteMessageResponse struct {
 }
 
 type JoinRequest struct {
-	UserID string `json:"userID"`
-	ChatID string `json:"chatID"`
+	UserID    string `json:"userID"`
+	ChannelID string `json:"channelID"`
 }
 
 type JoinResponse struct {
+	ID    string `json:"id"`
 	Error string `json:"error,omitempty"`
 }
 
@@ -400,8 +402,8 @@ type KickResponse struct {
 }
 
 type LeaveRequest struct {
-	UserID string `json:"userID"`
-	ChatID string `json:"chatID"`
+	UserID    string `json:"userID"`
+	ChannelID string `json:"channelID"`
 }
 
 type LeaveResponse struct {
@@ -409,8 +411,8 @@ type LeaveResponse struct {
 }
 
 type UnbanRequest struct {
-	UserID string `json:"userID"`
-	ChatID string `json:"chatID"`
+	UserID    string `json:"userID"`
+	ChannelID string `json:"channelID"`
 }
 
 type UnbanResponse struct {
@@ -418,7 +420,8 @@ type UnbanResponse struct {
 }
 
 type UnblockRequest struct {
-	UserID string `json:"userID"`
+	UserID          string `json:"userID"`
+	UserToUnblockId string `json:"userToUnblockId"`
 }
 
 type UnblockResponse struct {

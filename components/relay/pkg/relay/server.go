@@ -13,6 +13,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/thavlik/gcommz/components/relay/pkg/api"
+	"github.com/thavlik/gcommz/components/relay/pkg/storage"
 	"go.uber.org/zap"
 )
 
@@ -26,6 +27,7 @@ type Server struct {
 	socketsL sync.Mutex
 	sockets  map[string]*userConn
 	redis    *redis.Client
+	storage  storage.Storage
 	log      *zap.Logger
 }
 
@@ -38,6 +40,18 @@ func NewServer(
 		redis:   redis,
 		log:     log,
 	}
+}
+
+var errUserNotFound = fmt.Errorf("user not found")
+
+func (s *Server) getUser(userID string) (*userConn, error) {
+	s.socketsL.Lock()
+	u, ok := s.sockets[userID]
+	s.socketsL.Unlock()
+	if !ok {
+		return nil, errUserNotFound
+	}
+	return u, nil
 }
 
 func (s *Server) Start(
@@ -127,6 +141,10 @@ func (s *Server) handler() http.HandlerFunc {
 			upgraded = true
 
 			connLog.Debug("Upgraded connection")
+
+			if err := s.ensureUserLoaded(userID); err != nil {
+				return fmt.Errorf("ensureUserLoaded: %v", err)
+			}
 
 			user := s.addConn(userID, c)
 			defer s.removeConn(user, c)

@@ -8,5 +8,10 @@ import (
 )
 
 func (s *Server) Unban(ctx context.Context, req api.UnbanRequest) (*api.UnbanResponse, error) {
-	return nil, fmt.Errorf("unimplemented")
+	p := s.redis.Pipeline()
+	p.SRem(rkChannelBanList(req.ChannelID), req.UserID)
+	if _, err := p.Exec(); err != nil {
+		return nil, fmt.Errorf("redis: %v", err)
+	}
+	return &api.UnbanResponse{}, nil
 }

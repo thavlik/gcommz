@@ -8,5 +8,10 @@ import (
 )
 
 func (s *Server) Ban(ctx context.Context, req api.BanRequest) (*api.BanResponse, error) {
-	return nil, fmt.Errorf("unimplemented")
+	p := s.redis.Pipeline()
+	p.SAdd(rkChannelBanList(req.ChannelID), req.UserID)
+	if _, err := p.Exec(); err != nil {
+		return nil, fmt.Errorf("redis: %v", err)
+	}
+	return &api.BanResponse{}, nil
 }

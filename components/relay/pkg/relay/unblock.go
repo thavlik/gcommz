@@ -8,5 +8,10 @@ import (
 )
 
 func (s *Server) Unblock(ctx context.Context, req api.UnblockRequest) (*api.UnblockResponse, error) {
-	return nil, fmt.Errorf("unimplemented")
+	p := s.redis.Pipeline()
+	p.SRem(rkUserBlockList(req.UserID), req.UserToUnblockId)
+	if _, err := p.Exec(); err != nil {
+		return nil, fmt.Errorf("redis: %v", err)
+	}
+	return &api.UnblockResponse{}, nil
 }

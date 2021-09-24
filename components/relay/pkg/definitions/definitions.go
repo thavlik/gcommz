@@ -29,16 +29,17 @@ type DeleteChannelResponse struct {
 }
 
 type JoinRequest struct {
-	UserID string `json:"userId"`
-	ChatID string `json:"chatId"`
+	UserID    string `json:"userId"`
+	ChannelID string `json:"channelId"`
 }
 
 type JoinResponse struct {
+	ID string `json:"id"` // Subscription ID
 }
 
 type LeaveRequest struct {
-	UserID string `json:"userId"`
-	ChatID string `json:"chatId"`
+	UserID    string `json:"userId"`
+	ChannelID string `json:"channelId"`
 }
 
 type LeaveResponse struct {
@@ -59,30 +60,32 @@ type KickResponse struct {
 }
 
 type BanRequest struct {
-	UserID string `json:"userId"`
-	ChatID string `json:"chatId"`
+	UserID    string `json:"userId"`
+	ChannelID string `json:"channelId"`
 }
 
 type UnbanResponse struct {
 }
 
 type UnbanRequest struct {
-	UserID string `json:"userId"`
-	ChatID string `json:"chatId"`
+	UserID    string `json:"userId"`
+	ChannelID string `json:"channelId"`
 }
 
 type BanResponse struct {
 }
 
 type BlockRequest struct {
-	UserID string `json:"userId"`
+	UserID        string `json:"userId"`
+	UserToBlockId string `json:"userToBlockId"`
 }
 
 type BlockResponse struct {
 }
 
 type UnblockRequest struct {
-	UserID string `json:"userId"`
+	UserID          string `json:"userId"`
+	UserToUnblockId string `json:"userToUnblockId"`
 }
 
 type UnblockResponse struct {
